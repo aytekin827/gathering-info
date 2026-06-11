@@ -173,7 +173,7 @@ function App() {
     setLightboxImages(images);
     setIsLightboxOpen(true);
     document.body.style.overflow = 'hidden';
-    
+
     // Scroll to the specific image instantly once the lightbox is open
     setTimeout(() => {
       if (lightboxSliderRef.current) {
@@ -370,13 +370,6 @@ function App() {
               )}
             </div>
           )}
-
-          <div style={{ marginTop: '2rem', padding: '1rem', background: '#F1F5F9', borderRadius: '8px', fontSize: '0.85rem', color: '#64748B' }}>
-            <strong>💡 구글 시트 연동 안내 (관리자용)</strong><br />
-            현재는 테스트 데이터가 적용되어 있습니다. (테스트: 홍길동 / 010-1234-5678)<br />
-            실제 연동을 위해서는 App.tsx 파일의 GOOGLE_SHEET_CSV_URL 변수에 구글 시트 CSV 게시 링크를 입력해주세요.<br />
-            [시트 양식: 첫 줄에 '이름', '전화번호', '첫째날방', '둘째날방' 열 필수]
-          </div>
         </section>
       </main>
 
@@ -386,7 +379,7 @@ function App() {
           <button className="lightbox-close" onClick={closeLightbox}>
             <X size={28} color="white" />
           </button>
-          
+
           <div className="lightbox-slider" ref={lightboxSliderRef}>
             {lightboxImages.map((src, idx) => (
               <div className="lightbox-slide" key={idx}>
