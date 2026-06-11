@@ -28,7 +28,7 @@ function App() {
 
   // TODO: Replace with the actual Google Sheet "Published to the web" CSV URL
   // To get this URL: File -> Share -> Publish to web -> Link -> select sheet and CSV -> Copy URL
-  const GOOGLE_SHEET_CSV_URL = '';
+  const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTItftdzN5m1B6Aoxn2FZviI10qa2nwVifXbuuXPwH-oB5-KTWlnTiGp5L68Q5eJwJEWUf4l3nDZNlP/pub?gid=869083155&single=true&output=csv';
 
   useEffect(() => {
     // Attempt to load Google Sheets data
