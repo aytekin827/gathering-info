@@ -20,7 +20,6 @@ const MOCK_DATA: RoomData[] = [
 
 const SECTION_IMAGES = {
   schedule: [
-    "https://images.unsplash.com/photo-1506784951206-3837ddff48bb?q=80&w=1000&auto=format&fit=crop",
     "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?q=80&w=1000&auto=format&fit=crop",
     "https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=1000&auto=format&fit=crop",
   ],
