@@ -7,21 +7,22 @@ import './index.css';
 interface RoomData {
   name: string;
   phone: string;
-  room: string;
+  roomDay1: string;
+  roomDay2: string;
 }
 
 // Mock data to use if Google Sheets fetch fails or is not yet configured
 const MOCK_DATA: RoomData[] = [
-  { name: '홍길동', phone: '010-1234-5678', room: '101호' },
-  { name: '김철수', phone: '010-9876-5432', room: '205호' },
-  { name: '이영희', phone: '010-1111-2222', room: '303호' },
+  { name: '홍길동', phone: '010-1234-5678', roomDay1: '101호', roomDay2: '101호' },
+  { name: '김철수', phone: '010-9876-5432', roomDay1: '205호', roomDay2: '205호' },
+  { name: '이영희', phone: '010-1111-2222', roomDay1: '303호', roomDay2: '305호' },
 ];
 
 function App() {
   const [activeSection, setActiveSection] = useState('schedule');
   const [nameInput, setNameInput] = useState('');
   const [phoneInput, setPhoneInput] = useState('');
-  const [searchResult, setSearchResult] = useState<{ status: 'idle' | 'success' | 'error', message: string, room?: string }>({ status: 'idle', message: '' });
+  const [searchResult, setSearchResult] = useState<{ status: 'idle' | 'success' | 'error', message: string, roomDay1?: string, roomDay2?: string }>({ status: 'idle', message: '' });
   const [isLoading, setIsLoading] = useState(false);
   const [roomData, setRoomData] = useState<RoomData[]>([]);
 
@@ -42,11 +43,12 @@ function App() {
           download: true,
           header: true,
           complete: (results) => {
-            // Assuming the CSV columns are exactly "이름", "전화번호", "숙소"
+            // Assuming the CSV columns are exactly "이름", "전화번호", "첫째날방", "둘째날방"
             const parsedData: RoomData[] = results.data.map((row: any) => ({
               name: row['이름'] || row['name'] || '',
               phone: row['전화번호'] || row['phone'] || '',
-              room: row['숙소'] || row['room'] || row['숙소배정'] || '',
+              roomDay1: row['첫째날방'] || '',
+              roomDay2: row['둘째날방'] || '',
             }));
             setRoomData(parsedData);
           },
@@ -127,11 +129,12 @@ function App() {
         return item.name === normalizedInputName && itemPhone === normalizedInputPhone;
       });
 
-      if (found && found.room) {
+      if (found && (found.roomDay1 || found.roomDay2)) {
         setSearchResult({
           status: 'success',
           message: `${found.name}님의 숙소가 배정되었습니다.`,
-          room: found.room
+          roomDay1: found.roomDay1,
+          roomDay2: found.roomDay2
         });
       } else {
         setSearchResult({
@@ -272,8 +275,17 @@ function App() {
           {searchResult.status !== 'idle' && (
             <div className={`result-card ${searchResult.status}`}>
               <p>{searchResult.message}</p>
-              {searchResult.status === 'success' && searchResult.room && (
-                <div className="room-number">{searchResult.room}</div>
+              {searchResult.status === 'success' && (
+                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1rem' }}>
+                  <div style={{ flex: 1, padding: '1rem', background: 'white', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+                    <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>첫째날 방</div>
+                    <div className="room-number">{searchResult.roomDay1 || '-'}</div>
+                  </div>
+                  <div style={{ flex: 1, padding: '1rem', background: 'white', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+                    <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>둘째날 방</div>
+                    <div className="room-number">{searchResult.roomDay2 || '-'}</div>
+                  </div>
+                </div>
               )}
             </div>
           )}
@@ -282,7 +294,7 @@ function App() {
             <strong>💡 구글 시트 연동 안내 (관리자용)</strong><br />
             현재는 테스트 데이터가 적용되어 있습니다. (테스트: 홍길동 / 010-1234-5678)<br />
             실제 연동을 위해서는 App.tsx 파일의 GOOGLE_SHEET_CSV_URL 변수에 구글 시트 CSV 게시 링크를 입력해주세요.<br />
-            [시트 양식: 첫 줄에 '이름', '전화번호', '숙소' 열 필수]
+            [시트 양식: 첫 줄에 '이름', '전화번호', '첫째날방', '둘째날방' 열 필수]
           </div>
         </section>
 
