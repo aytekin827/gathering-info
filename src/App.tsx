@@ -36,7 +36,6 @@ const SECTION_IMAGES = {
   guide: [
     "https://images.unsplash.com/photo-1533481405265-e9ce0c044abb?q=80&w=1000&auto=format&fit=crop",
     "https://images.unsplash.com/photo-1478131143081-80f7f84ca84d?q=80&w=1000&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1517869222618-7b41b3e8e169?q=80&w=1000&auto=format&fit=crop"
   ]
 };
 
