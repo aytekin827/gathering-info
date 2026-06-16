@@ -57,7 +57,7 @@ export const TRANSLATIONS = {
     navGuide: 'Information',
     navRoom: 'Room Assignment',
     title: '2026 Gathering',
-    subtitle: 'May you receive much grace!',
+    subtitle: 'Have a blessed time!',
     scheduleTitle: 'Schedule',
     scheduleHint: 'Click on the image to view the enlarged version. Swipe left or right if there are multiple images.',
     structureTitle: 'Layout',
