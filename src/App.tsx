@@ -18,6 +18,69 @@ const MOCK_DATA: RoomData[] = [
   { name: '이영희', phone: '010-1111-2222', roomDay1: '303호', roomDay2: '305호' },
 ];
 
+export type Language = 'ko' | 'en';
+
+export const TRANSLATIONS = {
+  ko: {
+    navSchedule: '시간표',
+    navStructure: '왕의지밀 구조도',
+    navLocation: '오시는 길',
+    navGuide: '캠프 안내사항',
+    navRoom: '숙소 배정',
+    title: '2026 개더링',
+    subtitle: '은혜 많이 받으세요~',
+    scheduleTitle: '시간표',
+    scheduleHint: '이미지를 클릭하시면 확대하여 보실 수 있습니다. 여러 장일 경우 좌우로 넘겨보세요.',
+    structureTitle: '왕의지밀 구조도',
+    locationTitle: '오시는 길',
+    locationHint: '캠프장 오시는 길 안내입니다. 셔틀버스 탑승 위치도 확인해주세요.',
+    guideTitle: '캠프 안내사항',
+    guideHint: '준비물 및 주의사항 등 캠프 참가에 필요한 상세 정보입니다.',
+    roomTitle: '숙소 배정',
+    roomHint: '이름과 전화번호를 입력하여 배정된 숙소를 확인하세요.',
+    nameLabel: '이름',
+    namePlaceholder: '예: 홍길동',
+    phoneLabel: '전화번호',
+    phonePlaceholder: '010-0000-0000',
+    submitBtn: '숙소 확인하기',
+    checkingBtn: '확인 중...',
+    successMessage: (name: string) => `${name}님의 숙소가 배정되었습니다.`,
+    errorMessage: '일치하는 정보가 없습니다. 이름과 전화번호를 다시 확인해주세요.',
+    day1Room: '첫째날 방',
+    day2Room: '둘째날 방',
+    swipeHint: '옆으로 스와이프 하세요 ↔',
+  },
+  en: {
+    navSchedule: 'Schedule',
+    navStructure: 'Layout',
+    navLocation: 'Directions',
+    navGuide: 'Information',
+    navRoom: 'Room Assignment',
+    title: '2026 Gathering',
+    subtitle: 'May you receive much grace!',
+    scheduleTitle: 'Schedule',
+    scheduleHint: 'Click on the image to view the enlarged version. Swipe left or right if there are multiple images.',
+    structureTitle: 'Layout',
+    locationTitle: 'Directions',
+    locationHint: 'Directions to the campsite. Please check the shuttle bus boarding location.',
+    guideTitle: 'Information',
+    guideHint: 'Detailed information for camp participation, including checklist and precautions.',
+    roomTitle: 'Room Assignment',
+    roomHint: 'Enter your name and phone number to check your assigned accommodation.',
+    nameLabel: 'Name',
+    namePlaceholder: 'e.g. Gildong Hong',
+    phoneLabel: 'Phone Number',
+    phonePlaceholder: '010-0000-0000',
+    submitBtn: 'Check Accommodation',
+    checkingBtn: 'Checking...',
+    successMessage: (name: string) => `Room assigned for ${name}.`,
+    errorMessage: 'No matching records found. Please check your name and phone number again.',
+    day1Room: 'Day 1 Room',
+    day2Room: 'Day 2 Room',
+    swipeHint: 'Swipe sideways ↔',
+  }
+};
+
 const SECTION_IMAGES = {
   schedule: [
     "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?q=80&w=1000&auto=format&fit=crop",
@@ -40,10 +103,16 @@ const SECTION_IMAGES = {
 };
 
 function App() {
+  const [language, setLanguage] = useState<Language>('ko');
   const [activeSection, setActiveSection] = useState('schedule');
   const [nameInput, setNameInput] = useState('');
   const [phoneInput, setPhoneInput] = useState('');
-  const [searchResult, setSearchResult] = useState<{ status: 'idle' | 'success' | 'error', message: string, roomDay1?: string, roomDay2?: string }>({ status: 'idle', message: '' });
+  const [searchResult, setSearchResult] = useState<{
+    status: 'idle' | 'success' | 'error';
+    name?: string;
+    roomDay1?: string;
+    roomDay2?: string;
+  }>({ status: 'idle' });
   const [isLoading, setIsLoading] = useState(false);
   const [roomData, setRoomData] = useState<RoomData[]>([]);
 
@@ -139,7 +208,7 @@ function App() {
     if (!nameInput.trim() || !phoneInput.trim()) return;
 
     setIsLoading(true);
-    setSearchResult({ status: 'idle', message: '' });
+    setSearchResult({ status: 'idle' });
 
     setTimeout(() => {
       const normalizedInputPhone = phoneInput.replace(/-/g, '');
@@ -153,14 +222,13 @@ function App() {
       if (found && (found.roomDay1 || found.roomDay2)) {
         setSearchResult({
           status: 'success',
-          message: `${found.name}님의 숙소가 배정되었습니다.`,
+          name: found.name,
           roomDay1: found.roomDay1,
           roomDay2: found.roomDay2
         });
       } else {
         setSearchResult({
-          status: 'error',
-          message: '일치하는 정보가 없습니다. 이름과 전화번호를 다시 확인해주세요.'
+          status: 'error'
         });
       }
       setIsLoading(false);
@@ -193,74 +261,97 @@ function App() {
 
       {/* Navigation Bar */}
       <nav className="navbar">
-        <ul className="nav-links">
-          <li
-            className={`nav-item ${activeSection === 'schedule' ? 'active' : ''}`}
-            onClick={() => scrollToSection('schedule')}
-          >
-            시간표
-          </li>
-          <li
-            className={`nav-item ${activeSection === 'structure' ? 'active' : ''}`}
-            onClick={() => scrollToSection('structure')}
-          >
-            왕의지밀 구조도
-          </li>
-          <li
-            className={`nav-item ${activeSection === 'location' ? 'active' : ''}`}
-            onClick={() => scrollToSection('location')}
-          >
-            오시는 길
-          </li>
-          <li
-            className={`nav-item ${activeSection === 'guide' ? 'active' : ''}`}
-            onClick={() => scrollToSection('guide')}
-          >
-            캠프 안내사항
-          </li>
-          <li
-            className={`nav-item ${activeSection === 'room' ? 'active' : ''}`}
-            onClick={() => scrollToSection('room')}
-          >
-            숙소 배정
-          </li>
-        </ul>
+        <div className="navbar-container">
+          <ul className="nav-links">
+            <li
+              className={`nav-item ${activeSection === 'schedule' ? 'active' : ''}`}
+              onClick={() => scrollToSection('schedule')}
+            >
+              {TRANSLATIONS[language].navSchedule}
+            </li>
+            <li
+              className={`nav-item ${activeSection === 'structure' ? 'active' : ''}`}
+              onClick={() => scrollToSection('structure')}
+            >
+              {TRANSLATIONS[language].navStructure}
+            </li>
+            <li
+              className={`nav-item ${activeSection === 'location' ? 'active' : ''}`}
+              onClick={() => scrollToSection('location')}
+            >
+              {TRANSLATIONS[language].navLocation}
+            </li>
+            <li
+              className={`nav-item ${activeSection === 'guide' ? 'active' : ''}`}
+              onClick={() => scrollToSection('guide')}
+            >
+              {TRANSLATIONS[language].navGuide}
+            </li>
+            <li
+              className={`nav-item ${activeSection === 'room' ? 'active' : ''}`}
+              onClick={() => scrollToSection('room')}
+            >
+              {TRANSLATIONS[language].navRoom}
+            </li>
+          </ul>
+
+          <div className="lang-toggle">
+            <button
+              type="button"
+              className={`lang-btn ${language === 'ko' ? 'active' : ''}`}
+              onClick={() => setLanguage('ko')}
+            >
+              KO
+            </button>
+            <button
+              type="button"
+              className={`lang-btn ${language === 'en' ? 'active' : ''}`}
+              onClick={() => setLanguage('en')}
+            >
+              EN
+            </button>
+          </div>
+        </div>
       </nav>
 
       <main className="container">
         <header className="page-header">
-          <h1 className="page-title">2026 개더링</h1>
-          <p className="page-subtitle">은혜 많이 받으세요~</p>
+          <h1 className="page-title">{TRANSLATIONS[language].title}</h1>
+          <p className="page-subtitle">{TRANSLATIONS[language].subtitle}</p>
         </header>
 
         {/* Schedule Section */}
         <section id="schedule" className="section">
-          <h2 className="section-title"><Calendar size={24} color="var(--primary-color)" /> 시간표</h2>
+          <h2 className="section-title">
+            <Calendar size={24} color="var(--primary-color)" /> {TRANSLATIONS[language].scheduleTitle}
+          </h2>
           <div className="section-gallery">
             {SECTION_IMAGES.schedule.map((img, idx) => (
               <img
                 key={idx}
                 src={img}
-                alt={`시간표 이미지 ${idx + 1}`}
+                alt={`${TRANSLATIONS[language].scheduleTitle} ${idx + 1}`}
                 className="section-image"
                 onClick={() => openLightbox(SECTION_IMAGES.schedule, idx)}
               />
             ))}
           </div>
           <p style={{ marginTop: '0.5rem', color: 'var(--text-secondary)' }}>
-            이미지를 클릭하시면 확대하여 보실 수 있습니다. 여러 장일 경우 좌우로 넘겨보세요.
+            {TRANSLATIONS[language].scheduleHint}
           </p>
         </section>
 
         {/* Structure Section */}
         <section id="structure" className="section">
-          <h2 className="section-title"><Map size={24} color="var(--primary-color)" /> 왕의지밀 구조도</h2>
+          <h2 className="section-title">
+            <Map size={24} color="var(--primary-color)" /> {TRANSLATIONS[language].structureTitle}
+          </h2>
           <div className="section-gallery">
             {SECTION_IMAGES.structure.map((img, idx) => (
               <img
                 key={idx}
                 src={img}
-                alt={`왕의지밀 구조도 이미지 ${idx + 1}`}
+                alt={`${TRANSLATIONS[language].structureTitle} ${idx + 1}`}
                 className="section-image"
                 onClick={() => openLightbox(SECTION_IMAGES.structure, idx)}
               />
@@ -270,57 +361,65 @@ function App() {
 
         {/* Location Section */}
         <section id="location" className="section">
-          <h2 className="section-title"><MapPin size={24} color="var(--primary-color)" /> 오시는 길</h2>
+          <h2 className="section-title">
+            <MapPin size={24} color="var(--primary-color)" /> {TRANSLATIONS[language].locationTitle}
+          </h2>
           <div className="section-gallery">
             {SECTION_IMAGES.location.map((img, idx) => (
               <img
                 key={idx}
                 src={img}
-                alt={`오시는 길 이미지 ${idx + 1}`}
+                alt={`${TRANSLATIONS[language].locationTitle} ${idx + 1}`}
                 className="section-image"
                 onClick={() => openLightbox(SECTION_IMAGES.location, idx)}
               />
             ))}
           </div>
           <p style={{ marginTop: '0.5rem', color: 'var(--text-secondary)' }}>
-            캠프장 오시는 길 안내입니다. 셔틀버스 탑승 위치도 확인해주세요.
+            {TRANSLATIONS[language].locationHint}
           </p>
         </section>
 
         {/* Guide Section */}
         <section id="guide" className="section">
-          <h2 className="section-title"><Info size={24} color="var(--primary-color)" /> 캠프 안내사항</h2>
+          <h2 className="section-title">
+            <Info size={24} color="var(--primary-color)" /> {TRANSLATIONS[language].guideTitle}
+          </h2>
           <div className="section-gallery">
             {SECTION_IMAGES.guide.map((img, idx) => (
               <img
                 key={idx}
                 src={img}
-                alt={`캠프 안내 이미지 ${idx + 1}`}
+                alt={`${TRANSLATIONS[language].guideTitle} ${idx + 1}`}
                 className="section-image"
                 onClick={() => openLightbox(SECTION_IMAGES.guide, idx)}
               />
             ))}
           </div>
           <p style={{ marginTop: '0.5rem', color: 'var(--text-secondary)' }}>
-            준비물 및 주의사항 등 캠프 참가에 필요한 상세 정보입니다.
+            {TRANSLATIONS[language].guideHint}
           </p>
         </section>
 
         {/* Room Assignment Section */}
         <section id="room" className="section">
-          <h2 className="section-title"><Home size={24} color="var(--primary-color)" /> 숙소 배정</h2>
+          <h2 className="section-title">
+            <Home size={24} color="var(--primary-color)" /> {TRANSLATIONS[language].roomTitle}
+          </h2>
           <p style={{ marginBottom: '1.5rem', color: 'var(--text-secondary)' }}>
-            이름과 전화번호를 입력하여 배정된 숙소를 확인하세요.
+            {TRANSLATIONS[language].roomHint}
           </p>
 
           <form className="room-form" onSubmit={handleSearchRoom}>
             <div className="input-group">
-              <label htmlFor="name" className="input-label">이름</label>
+              <label htmlFor="name" className="input-label">
+                {TRANSLATIONS[language].nameLabel}
+              </label>
               <input
                 type="text"
                 id="name"
                 className="input-field"
-                placeholder="예: 홍길동"
+                placeholder={TRANSLATIONS[language].namePlaceholder}
                 value={nameInput}
                 onChange={(e) => setNameInput(e.target.value)}
                 required
@@ -328,12 +427,14 @@ function App() {
             </div>
 
             <div className="input-group">
-              <label htmlFor="phone" className="input-label">전화번호</label>
+              <label htmlFor="phone" className="input-label">
+                {TRANSLATIONS[language].phoneLabel}
+              </label>
               <input
                 type="tel"
                 id="phone"
                 className="input-field"
-                placeholder="010-0000-0000"
+                placeholder={TRANSLATIONS[language].phonePlaceholder}
                 value={phoneInput}
                 onChange={handlePhoneChange}
                 maxLength={13}
@@ -346,22 +447,31 @@ function App() {
               className="submit-btn"
               disabled={isLoading || !nameInput || !phoneInput}
             >
-              {isLoading ? '확인 중...' : '숙소 확인하기'} <Search size={18} style={{ display: 'inline', verticalAlign: 'text-bottom', marginLeft: '4px' }} />
+              {isLoading ? TRANSLATIONS[language].checkingBtn : TRANSLATIONS[language].submitBtn}{' '}
+              <Search size={18} style={{ display: 'inline', verticalAlign: 'text-bottom', marginLeft: '4px' }} />
             </button>
           </form>
 
           {/* Result Display */}
           {searchResult.status !== 'idle' && (
             <div className={`result-card ${searchResult.status}`}>
-              <p>{searchResult.message}</p>
+              <p>
+                {searchResult.status === 'success'
+                  ? TRANSLATIONS[language].successMessage(searchResult.name || '')
+                  : TRANSLATIONS[language].errorMessage}
+              </p>
               {searchResult.status === 'success' && (
                 <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1rem' }}>
                   <div style={{ flex: 1, padding: '1rem', background: 'white', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
-                    <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>첫째날 방</div>
+                    <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                      {TRANSLATIONS[language].day1Room}
+                    </div>
                     <div className="room-number">{searchResult.roomDay1 || '-'}</div>
                   </div>
                   <div style={{ flex: 1, padding: '1rem', background: 'white', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
-                    <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>둘째날 방</div>
+                    <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                      {TRANSLATIONS[language].day2Room}
+                    </div>
                     <div className="room-number">{searchResult.roomDay2 || '-'}</div>
                   </div>
                 </div>
@@ -381,13 +491,13 @@ function App() {
           <div className="lightbox-slider" ref={lightboxSliderRef}>
             {lightboxImages.map((src, idx) => (
               <div className="lightbox-slide" key={idx}>
-                <img src={src} alt={`확대된 이미지 ${idx + 1}`} className="lightbox-img" />
+                <img src={src} alt={`Enlarged image ${idx + 1}`} className="lightbox-img" />
               </div>
             ))}
           </div>
 
           {lightboxImages.length > 1 && (
-            <div className="lightbox-hint">옆으로 스와이프 하세요 ↔</div>
+            <div className="lightbox-hint">{TRANSLATIONS[language].swipeHint}</div>
           )}
         </div>
       )}
