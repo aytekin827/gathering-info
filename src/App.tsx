@@ -6,16 +6,40 @@ import './index.css';
 // Type definition for Room Data
 interface RoomData {
   name: string;
-  phone: string;
+  contact: string;  // '연락처' 열
   roomDay1: string;
   roomDay2: string;
 }
 
+// 동 번호 → 동 이름 매핑
+const BUILDING_NAMES: Record<string, string> = {
+  '1': '태조관',
+  '2': '태종관',
+  '3': '세종관',
+  '4': '문종관',
+  '5': '세조관',
+  '6': '선조관',
+  '7': '숙종관',
+  '8': '영조관',
+  '9': '정조관',
+  '10': '고종관',
+  '11': '순종관',
+};
+
+// "10동 101호" 형태의 문자열에서 동 이름을 추출하는 함수
+function getBuildingName(roomStr: string): string {
+  const match = roomStr.match(/(\d+)동/);
+  if (match) {
+    return BUILDING_NAMES[match[1]] || `${match[1]}동`;
+  }
+  return '';
+}
+
 // Mock data to use if Google Sheets fetch fails or is not yet configured
 const MOCK_DATA: RoomData[] = [
-  { name: '홍길동', phone: '010-1234-5678', roomDay1: '101호', roomDay2: '101호' },
-  { name: '김철수', phone: '010-9876-5432', roomDay1: '205호', roomDay2: '205호' },
-  { name: '이영희', phone: '010-1111-2222', roomDay1: '303호', roomDay2: '305호' },
+  { name: '홍길동', contact: '010-1234-5678', roomDay1: '1동 101호', roomDay2: '1동 101호' },
+  { name: '김철수', contact: '010-9876-5432', roomDay1: '5동 205호', roomDay2: '5동 205호' },
+  { name: '이영희', contact: '010-1111-2222', roomDay1: '3동 303호', roomDay2: '3동 305호' },
 ];
 
 export type Language = 'ko' | 'en';
@@ -23,15 +47,15 @@ export type Language = 'ko' | 'en';
 export const TRANSLATIONS = {
   ko: {
     navSchedule: '시간표',
-    navStructure: '왕의지밀 구조도',
+    navStructure: '지도',
     navLocation: '오시는 길',
     navGuide: '캠프 안내사항',
     navRoom: '숙소 배정',
     title: '2026 개더링',
-    subtitle: '은혜 많이 받으세요~',
+    subtitle: '하나님의 은혜로 복된 시간 되세요❤️',
     scheduleTitle: '시간표',
     scheduleHint: '이미지를 클릭하시면 확대하여 보실 수 있습니다. 여러 장일 경우 좌우로 넘겨보세요.',
-    structureTitle: '왕의지밀 구조도',
+    structureTitle: '지도',
     locationTitle: '오시는 길',
     locationHint: '캠프장 오시는 길 안내입니다. 셔틀버스 탑승 위치도 확인해주세요.',
     guideTitle: '캠프 안내사항',
@@ -40,19 +64,19 @@ export const TRANSLATIONS = {
     roomHint: '이름과 전화번호를 입력하여 배정된 숙소를 확인하세요.',
     nameLabel: '이름',
     namePlaceholder: '예: 홍길동',
-    phoneLabel: '전화번호',
+    phoneLabel: '연락처',
     phonePlaceholder: '010-0000-0000',
     submitBtn: '숙소 확인하기',
     checkingBtn: '확인 중...',
     successMessage: (name: string) => `${name}님의 숙소가 배정되었습니다.`,
     errorMessage: '일치하는 정보가 없습니다. 이름과 전화번호를 다시 확인해주세요.',
-    day1Room: '첫째날 방',
-    day2Room: '둘째날 방',
+    day1Room: '6.25 (목)',
+    day2Room: '6.26 (금)',
     swipeHint: '옆으로 스와이프 하세요 ↔',
   },
   en: {
     navSchedule: 'Schedule',
-    navStructure: 'Layout',
+    navStructure: 'Map',
     navLocation: 'Directions',
     navGuide: 'Information',
     navRoom: 'Room Assignment',
@@ -60,7 +84,7 @@ export const TRANSLATIONS = {
     subtitle: 'Have a blessed time!',
     scheduleTitle: 'Schedule',
     scheduleHint: 'Click on the image to view the enlarged version. Swipe left or right if there are multiple images.',
-    structureTitle: 'Layout',
+    structureTitle: 'Map',
     locationTitle: 'Directions',
     locationHint: 'Directions to the campsite. Please check the shuttle bus boarding location.',
     guideTitle: 'Information',
@@ -69,27 +93,24 @@ export const TRANSLATIONS = {
     roomHint: 'Enter your name and phone number to check your assigned accommodation.',
     nameLabel: 'Name',
     namePlaceholder: 'e.g. Gildong Hong',
-    phoneLabel: 'Phone Number',
+    phoneLabel: 'Contact',
     phonePlaceholder: '010-0000-0000',
     submitBtn: 'Check Accommodation',
     checkingBtn: 'Checking...',
     successMessage: (name: string) => `Room assigned for ${name}.`,
     errorMessage: 'No matching records found. Please check your name and phone number again.',
-    day1Room: 'Day 1 Room',
-    day2Room: 'Day 2 Room',
+    day1Room: 'Day 1 (Thu 6/25)',
+    day2Room: 'Day 2 (Fri 6/26)',
     swipeHint: 'Swipe sideways ↔',
   }
 };
 
 const SECTION_IMAGES = {
   schedule: [
-    "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?q=80&w=1000&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=1000&auto=format&fit=crop",
+    "/개더링일정표.png",
   ],
   structure: [
-    "https://images.unsplash.com/photo-1565031491910-e57fac031c41?q=80&w=1000&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=1000&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=1000&auto=format&fit=crop",
+    "layout.jpg",
   ],
   location: [
     "https://images.unsplash.com/photo-1506146332389-18140dc7b2fb?q=80&w=1000&auto=format&fit=crop",
@@ -121,8 +142,15 @@ function App() {
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const lightboxSliderRef = useRef<HTMLDivElement>(null);
 
-  // TODO: Replace with the actual Google Sheet "Published to the web" CSV URL
-  const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTItftdzN5m1B6Aoxn2FZviI10qa2nwVifXbuuXPwH-oB5-KTWlnTiGp5L68Q5eJwJEWUf4l3nDZNlP/pub?gid=869083155&single=true&output=csv';
+  // Google Sheet "방배정" 시트 CSV URL
+  // 실제 시트 데이터 확인 결과, 첫 번째 시트(gid=0)에 방배정 데이터가 있습니다.
+  // 만약 "방배정" 시트가 따로 있다면 해당 시트의 gid 값으로 교체하세요.
+  // const BASE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSobizaNozUAdQ0FThwosoBm8897pf96D-wN0VLsH2QR_RQk96d_EA-yKpdB6yqqkAT2KUok5h--0Ms/pub';
+  // gid=0: 첫 번째 시트 ("방배정" 시튴이 다른 위치에 있다면 해당 gid로 교체)
+  // const BANG_BAEJUNG_GID = '0';
+  // const GOOGLE_SHEET_CSV_URL = `${BASE_SHEET_URL}?output=csv&gid=${BANG_BAEJUNG_GID}`;
+
+  const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSobizaNozUAdQ0FThwosoBm8897pf96D-wN0VLsH2QR_RQk96d_EA-yKpdB6yqqkAT2KUok5h--0Ms/pub?output=csv';
 
   useEffect(() => {
     // Attempt to load Google Sheets data
@@ -137,12 +165,20 @@ function App() {
           download: true,
           header: true,
           complete: (results) => {
-            const parsedData: RoomData[] = results.data.map((row: any) => ({
-              name: row['이름'] || row['name'] || '',
-              phone: row['전화번호'] || row['phone'] || '',
-              roomDay1: row['첫째날방'] || '',
-              roomDay2: row['둘째날방'] || '',
-            }));
+            console.log('CSV 헤더 (열 이름):', results.meta.fields);
+            console.log('첫 번째 행 샘플:', results.data[0]);
+            const parsedData: RoomData[] = (results.data as any[])
+              .filter((row: any) => row['이름'] || row['name']) // 빈 행 제거
+              .map((row: any) => ({
+                name: row['이름'] || row['name'] || '',
+                // '연락처' 열 사용 (백업: '전화번호', 'phone')
+                contact: row['연락처'] || row['전화번호'] || row['phone'] || '',
+                // 실제 열명: '6.25(목)', '6.26(금)'
+                roomDay1: row['6.25(목)'] || row['첫째날방'] || row['1일차방'] || '',
+                roomDay2: row['6.26(금)'] || row['둘째날방'] || row['2일차방'] || '',
+              }));
+            console.log(`총 ${parsedData.length}개의 행 로드됨`);
+            console.log('샘플 데이터:', parsedData.slice(0, 3));
             setRoomData(parsedData);
           },
           error: (error) => {
@@ -160,7 +196,7 @@ function App() {
   }, []);
 
   const handleScroll = () => {
-    const sections = ['schedule', 'structure', 'location', 'guide', 'room'];
+    const sections = ['schedule', 'room', 'structure', 'guide', 'location'];
     const scrollPosition = window.scrollY + 100;
 
     for (const section of sections) {
@@ -211,12 +247,12 @@ function App() {
     setSearchResult({ status: 'idle' });
 
     setTimeout(() => {
-      const normalizedInputPhone = phoneInput.replace(/-/g, '');
+      const normalizedInputContact = phoneInput.replace(/-/g, '').trim();
       const normalizedInputName = nameInput.trim();
 
       const found = roomData.find(item => {
-        const itemPhone = item.phone.replace(/-/g, '');
-        return item.name === normalizedInputName && itemPhone === normalizedInputPhone;
+        const itemContact = item.contact.replace(/-/g, '').trim();
+        return item.name === normalizedInputName && itemContact === normalizedInputContact;
       });
 
       if (found && (found.roomDay1 || found.roomDay2)) {
@@ -270,22 +306,16 @@ function App() {
               {TRANSLATIONS[language].navSchedule}
             </li>
             <li
-              className={`nav-item ${activeSection === 'structure' ? 'active' : ''}`}
-              onClick={() => scrollToSection('structure')}
-            >
-              {TRANSLATIONS[language].navStructure}
-            </li>
-            <li
-              className={`nav-item ${activeSection === 'location' ? 'active' : ''}`}
-              onClick={() => scrollToSection('location')}
-            >
-              {TRANSLATIONS[language].navLocation}
-            </li>
-            <li
               className={`nav-item ${activeSection === 'guide' ? 'active' : ''}`}
               onClick={() => scrollToSection('guide')}
             >
               {TRANSLATIONS[language].navGuide}
+            </li>
+            <li
+              className={`nav-item ${activeSection === 'structure' ? 'active' : ''}`}
+              onClick={() => scrollToSection('structure')}
+            >
+              {TRANSLATIONS[language].navStructure}
             </li>
             <li
               className={`nav-item ${activeSection === 'room' ? 'active' : ''}`}
@@ -293,6 +323,12 @@ function App() {
             >
               {TRANSLATIONS[language].navRoom}
             </li>
+            {/* <li
+              className={`nav-item ${activeSection === 'location' ? 'active' : ''}`}
+              onClick={() => scrollToSection('location')}
+            >
+              {TRANSLATIONS[language].navLocation}
+            </li> */}
           </ul>
 
           <div className="lang-toggle">
@@ -331,52 +367,13 @@ function App() {
                 key={idx}
                 src={img}
                 alt={`${TRANSLATIONS[language].scheduleTitle} ${idx + 1}`}
-                className="section-image"
+                className="section-image section-image--full"
                 onClick={() => openLightbox(SECTION_IMAGES.schedule, idx)}
               />
             ))}
           </div>
           <p style={{ marginTop: '0.5rem', color: 'var(--text-secondary)' }}>
             {TRANSLATIONS[language].scheduleHint}
-          </p>
-        </section>
-
-        {/* Structure Section */}
-        <section id="structure" className="section">
-          <h2 className="section-title">
-            <Map size={24} color="var(--primary-color)" /> {TRANSLATIONS[language].structureTitle}
-          </h2>
-          <div className="section-gallery">
-            {SECTION_IMAGES.structure.map((img, idx) => (
-              <img
-                key={idx}
-                src={img}
-                alt={`${TRANSLATIONS[language].structureTitle} ${idx + 1}`}
-                className="section-image"
-                onClick={() => openLightbox(SECTION_IMAGES.structure, idx)}
-              />
-            ))}
-          </div>
-        </section>
-
-        {/* Location Section */}
-        <section id="location" className="section">
-          <h2 className="section-title">
-            <MapPin size={24} color="var(--primary-color)" /> {TRANSLATIONS[language].locationTitle}
-          </h2>
-          <div className="section-gallery">
-            {SECTION_IMAGES.location.map((img, idx) => (
-              <img
-                key={idx}
-                src={img}
-                alt={`${TRANSLATIONS[language].locationTitle} ${idx + 1}`}
-                className="section-image"
-                onClick={() => openLightbox(SECTION_IMAGES.location, idx)}
-              />
-            ))}
-          </div>
-          <p style={{ marginTop: '0.5rem', color: 'var(--text-secondary)' }}>
-            {TRANSLATIONS[language].locationHint}
           </p>
         </section>
 
@@ -399,6 +396,24 @@ function App() {
           <p style={{ marginTop: '0.5rem', color: 'var(--text-secondary)' }}>
             {TRANSLATIONS[language].guideHint}
           </p>
+        </section>
+
+        {/* Structure Section */}
+        <section id="structure" className="section">
+          <h2 className="section-title">
+            <Map size={24} color="var(--primary-color)" /> {TRANSLATIONS[language].structureTitle}
+          </h2>
+          <div className="section-gallery">
+            {SECTION_IMAGES.structure.map((img, idx) => (
+              <img
+                key={idx}
+                src={img}
+                alt={`${TRANSLATIONS[language].structureTitle} ${idx + 1}`}
+                className="section-image"
+                onClick={() => openLightbox(SECTION_IMAGES.structure, idx)}
+              />
+            ))}
+          </div>
         </section>
 
         {/* Room Assignment Section */}
@@ -467,18 +482,49 @@ function App() {
                       {TRANSLATIONS[language].day1Room}
                     </div>
                     <div className="room-number">{searchResult.roomDay1 || '-'}</div>
+                    {searchResult.roomDay1 && getBuildingName(searchResult.roomDay1) && (
+                      <div style={{ fontSize: '0.85rem', color: 'var(--primary-color)', fontWeight: 600, marginTop: '0.3rem' }}>
+                        {getBuildingName(searchResult.roomDay1)}
+                      </div>
+                    )}
                   </div>
                   <div style={{ flex: 1, padding: '1rem', background: 'white', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
                     <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
                       {TRANSLATIONS[language].day2Room}
                     </div>
                     <div className="room-number">{searchResult.roomDay2 || '-'}</div>
+                    {searchResult.roomDay2 && getBuildingName(searchResult.roomDay2) && (
+                      <div style={{ fontSize: '0.85rem', color: 'var(--primary-color)', fontWeight: 600, marginTop: '0.3rem' }}>
+                        {getBuildingName(searchResult.roomDay2)}
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
             </div>
           )}
         </section>
+
+        {/* Location Section */}
+        {/* <section id="location" className="section">
+          <h2 className="section-title">
+            <MapPin size={24} color="var(--primary-color)" /> {TRANSLATIONS[language].locationTitle}
+          </h2>
+          <div className="section-gallery">
+            {SECTION_IMAGES.location.map((img, idx) => (
+              <img
+                key={idx}
+                src={img}
+                alt={`${TRANSLATIONS[language].locationTitle} ${idx + 1}`}
+                className="section-image"
+                onClick={() => openLightbox(SECTION_IMAGES.location, idx)}
+              />
+            ))}
+          </div>
+          <p style={{ marginTop: '0.5rem', color: 'var(--text-secondary)' }}>
+            {TRANSLATIONS[language].locationHint}
+          </p>
+        </section> */}
       </main>
 
       {/* Lightbox Modal */}

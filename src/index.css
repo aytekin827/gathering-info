@@ -181,6 +181,17 @@ body {
   background-color: #E2E8F0;
 }
 
+/* 시간표등 전체 이미지가 보이는 변형 클래스 */
+.section-image--full {
+  width: 100%;
+  border-radius: 12px;
+  object-fit: contain;
+  aspect-ratio: unset;
+  height: auto;
+  background-color: #F8FAFC;
+  display: block;
+}
+
 /* Room Check Form */
 .room-form {
   display: flex;
