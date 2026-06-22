@@ -107,7 +107,8 @@ export const TRANSLATIONS = {
 
 const SECTION_IMAGES = {
   schedule: [
-    "/개더링일정표.png",
+    "/gathering-schedule-ko.png",
+    "/gathering-schedule-en.png",
   ],
   structure: [
     "layout.jpg",
@@ -362,15 +363,19 @@ function App() {
             <Calendar size={24} color="var(--primary-color)" /> {TRANSLATIONS[language].scheduleTitle}
           </h2>
           <div className="section-gallery">
-            {SECTION_IMAGES.schedule.map((img, idx) => (
-              <img
-                key={idx}
-                src={img}
-                alt={`${TRANSLATIONS[language].scheduleTitle} ${idx + 1}`}
-                className="section-image section-image--full"
-                onClick={() => openLightbox(SECTION_IMAGES.schedule, idx)}
-              />
-            ))}
+            {(() => {
+              const scheduleImg = language === 'ko'
+                ? SECTION_IMAGES.schedule[0]
+                : SECTION_IMAGES.schedule[1];
+              return (
+                <img
+                  src={scheduleImg}
+                  alt={TRANSLATIONS[language].scheduleTitle}
+                  className="section-image section-image--full"
+                  onClick={() => openLightbox([scheduleImg], 0)}
+                />
+              );
+            })()}
           </div>
           <p style={{ marginTop: '0.5rem', color: 'var(--text-secondary)' }}>
             {TRANSLATIONS[language].scheduleHint}
