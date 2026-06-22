@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Papa from 'papaparse';
-import { Calendar, MapPin, Info, Search, Home, X, Map } from 'lucide-react';
+import { Calendar, Info, Search, Home, X, Map } from 'lucide-react';
 import './index.css';
 
 // Type definition for Room Data
