@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Papa from 'papaparse';
-import { Calendar, Info, Search, Home, X, Map } from 'lucide-react';
+import { Calendar, Info, Search, Home, X, Map, BookOpen } from 'lucide-react';
 import './index.css';
 
 // Type definition for Room Data
@@ -51,15 +51,16 @@ export const TRANSLATIONS = {
     navLocation: '오시는 길',
     navGuide: '캠프 안내사항',
     navRoom: '숙소 배정',
+    navWorkshop: '미션워크샵',
     title: '2026 개더링',
     subtitle: '하나님의 은혜로 복된 시간 되세요❤️',
     scheduleTitle: '시간표',
-    scheduleHint: '이미지를 클릭하시면 확대하여 보실 수 있습니다. 여러 장일 경우 좌우로 넘겨보세요.',
+    scheduleHint: '',
     structureTitle: '지도',
     locationTitle: '오시는 길',
     locationHint: '캠프장 오시는 길 안내입니다. 셔틀버스 탑승 위치도 확인해주세요.',
     guideTitle: '캠프 안내사항',
-    guideHint: '준비물 및 주의사항 등 캠프 참가에 필요한 상세 정보입니다.',
+    guideHint: '',
     roomTitle: '숙소 배정',
     roomHint: '이름과 전화번호를 입력하여 배정된 숙소를 확인하세요.',
     nameLabel: '이름',
@@ -73,6 +74,9 @@ export const TRANSLATIONS = {
     day1Room: '6.25 (목)',
     day2Room: '6.26 (금)',
     swipeHint: '옆으로 스와이프 하세요 ↔',
+    workshopTitle: '미션워크샵',
+    workshopBtn: '신청하기',
+    workshopHint: '미션워크샵 강의 신청 페이지로 이동하여 신청하실 수 있습니다.',
   },
   en: {
     navSchedule: 'Schedule',
@@ -80,15 +84,16 @@ export const TRANSLATIONS = {
     navLocation: 'Directions',
     navGuide: 'Information',
     navRoom: 'Room Assignment',
+    navWorkshop: 'Mission Workshop',
     title: '2026 Gathering',
     subtitle: 'Have a blessed time!',
     scheduleTitle: 'Schedule',
-    scheduleHint: 'Click on the image to view the enlarged version. Swipe left or right if there are multiple images.',
+    scheduleHint: '',
     structureTitle: 'Map',
     locationTitle: 'Directions',
     locationHint: 'Directions to the campsite. Please check the shuttle bus boarding location.',
     guideTitle: 'Information',
-    guideHint: 'Detailed information for camp participation, including checklist and precautions.',
+    guideHint: '',
     roomTitle: 'Room Assignment',
     roomHint: 'Enter your name and phone number to check your assigned accommodation.',
     nameLabel: 'Name',
@@ -102,6 +107,9 @@ export const TRANSLATIONS = {
     day1Room: 'Day 1 (Thu 6/25)',
     day2Room: 'Day 2 (Fri 6/26)',
     swipeHint: 'Swipe sideways ↔',
+    workshopTitle: 'Mission Workshop',
+    workshopBtn: 'Apply',
+    workshopHint: 'Go to the Mission Workshop registration page to apply.',
   }
 };
 
@@ -118,10 +126,16 @@ const SECTION_IMAGES = {
     "https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=1000&auto=format&fit=crop",
     "https://images.unsplash.com/photo-1449844908441-8829872d2607?q=80&w=1000&auto=format&fit=crop",
   ],
-  guide: [
-    "https://images.unsplash.com/photo-1533481405265-e9ce0c044abb?q=80&w=1000&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1478131143081-80f7f84ca84d?q=80&w=1000&auto=format&fit=crop",
-  ]
+  guide: {
+    ko: [
+      "/gathering-items.jpg",
+      "/gathering-shuttle.jpg"
+    ],
+    en: [
+      "/gathering-items-en.jpg",
+      "/gathering-shuttle-en.jpg"
+    ]
+  }
 };
 
 function App() {
@@ -197,7 +211,7 @@ function App() {
   }, []);
 
   const handleScroll = () => {
-    const sections = ['schedule', 'room', 'structure', 'guide', 'location'];
+    const sections = ['schedule', 'guide', 'workshop', 'structure', 'room', 'location'];
     const scrollPosition = window.scrollY + 100;
 
     for (const section of sections) {
@@ -313,6 +327,12 @@ function App() {
               {TRANSLATIONS[language].navGuide}
             </li>
             <li
+              className={`nav-item ${activeSection === 'workshop' ? 'active' : ''}`}
+              onClick={() => scrollToSection('workshop')}
+            >
+              {TRANSLATIONS[language].navWorkshop}
+            </li>
+            <li
               className={`nav-item ${activeSection === 'structure' ? 'active' : ''}`}
               onClick={() => scrollToSection('structure')}
             >
@@ -388,19 +408,48 @@ function App() {
             <Info size={24} color="var(--primary-color)" /> {TRANSLATIONS[language].guideTitle}
           </h2>
           <div className="section-gallery">
-            {SECTION_IMAGES.guide.map((img, idx) => (
+            {SECTION_IMAGES.guide[language].map((img, idx) => (
               <img
                 key={idx}
                 src={img}
                 alt={`${TRANSLATIONS[language].guideTitle} ${idx + 1}`}
-                className="section-image"
-                onClick={() => openLightbox(SECTION_IMAGES.guide, idx)}
+                className="section-image section-image--full"
+                onClick={() => openLightbox(SECTION_IMAGES.guide[language], idx)}
               />
             ))}
           </div>
           <p style={{ marginTop: '0.5rem', color: 'var(--text-secondary)' }}>
             {TRANSLATIONS[language].guideHint}
           </p>
+        </section>
+
+        {/* Workshop Section */}
+        <section id="workshop" className="section">
+          <h2 className="section-title">
+            <BookOpen size={24} color="var(--primary-color)" /> {TRANSLATIONS[language].workshopTitle}
+          </h2>
+          <p style={{ marginBottom: '1.5rem', color: 'var(--text-secondary)' }}>
+            {TRANSLATIONS[language].workshopHint}
+          </p>
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1rem' }}>
+            <a
+              href="https://www.the4winds1327.com/courses"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="submit-btn"
+              style={{
+                textDecoration: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '100%',
+                maxWidth: '300px',
+                textAlign: 'center',
+              }}
+            >
+              {TRANSLATIONS[language].workshopBtn}
+            </a>
+          </div>
         </section>
 
         {/* Structure Section */}
