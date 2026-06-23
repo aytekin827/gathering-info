@@ -83,7 +83,7 @@ export const TRANSLATIONS = {
     navStructure: 'Map',
     navLocation: 'Directions',
     navGuide: 'Information',
-    navRoom: 'Room Assignment',
+    navRoom: 'Room',
     navWorkshop: 'Mission Workshop',
     title: '2026 Gathering',
     subtitle: 'Have a blessed time!',
@@ -94,7 +94,7 @@ export const TRANSLATIONS = {
     locationHint: 'Directions to the campsite. Please check the shuttle bus boarding location.',
     guideTitle: 'Information',
     guideHint: '',
-    roomTitle: 'Room Assignment',
+    roomTitle: 'Room',
     roomHint: 'Enter your name and phone number to check your assigned accommodation.',
     nameLabel: 'Name',
     namePlaceholder: 'e.g. Gildong Hong',
@@ -128,12 +128,16 @@ const SECTION_IMAGES = {
   ],
   guide: {
     ko: [
-      "/gathering-items.jpg",
-      "/gathering-shuttle.jpg"
+      "/gathering-main-ko.jpg",
+      "/gathering-items-ko.jpg",
+      "/gathering-shuttle-ko.jpg",
+      "/gathering-info-ko.jpg"
     ],
     en: [
-      "/gathering-items-en.jpg",
-      "/gathering-shuttle-en.jpg"
+      "/gathering-main-en.jpg",
+      "/gathering-itmes-en.jpg",
+      "/gathering-shuttle-en.jpg",
+      "/gathering-info-en.jpg"
     ]
   }
 };
@@ -463,7 +467,7 @@ function App() {
                 key={idx}
                 src={img}
                 alt={`${TRANSLATIONS[language].structureTitle} ${idx + 1}`}
-                className="section-image"
+                className="section-image section-image--full"
                 onClick={() => openLightbox(SECTION_IMAGES.structure, idx)}
               />
             ))}
