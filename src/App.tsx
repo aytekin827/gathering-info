@@ -37,7 +37,7 @@ function getBuildingName(roomStr: string): string {
 
 // Mock data to use if Google Sheets fetch fails or is not yet configured
 const MOCK_DATA: RoomData[] = [
-  { name: '홍길동', contact: '010-1234-5678', roomDay1: '1동 101호', roomDay2: '1동 101호' },
+  { name: '홍길동', contact: '010-1234-5678', roomDay1: '1동 102호', roomDay2: '1동 101호' },
   { name: '김철수', contact: '010-9876-5432', roomDay1: '5동 205호', roomDay2: '5동 205호' },
   { name: '이영희', contact: '010-1111-2222', roomDay1: '3동 303호', roomDay2: '3동 305호' },
 ];
