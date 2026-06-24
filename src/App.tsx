@@ -134,10 +134,10 @@ const SECTION_IMAGES = {
       "/gathering-info-ko.jpg"
     ],
     en: [
-      "/gathering-main-en.jpg",
-      "/gathering-itmes-en.jpg",
-      "/gathering-shuttle-en.jpg",
-      "/gathering-info-en.jpg"
+      "/gathering-main-en2.jpg",
+      "/gathering-itmes-en2.jpg",
+      "/gathering-shuttle-en2.jpg",
+      "/gathering-info-en2.jpg"
     ]
   }
 };
