@@ -11,6 +11,20 @@ interface RoomData {
   roomDay2: string;
 }
 
+interface RoomingListData {
+  roomNumber: string;
+  leader1: string;
+  leader2: string;
+}
+
+const MOCK_ROOMING_LIST: RoomingListData[] = [
+  { roomNumber: '1동 101호', leader1: '임사랑', leader2: '임사랑' },
+  { roomNumber: '1동 102호', leader1: '이민섭', leader2: '이민섭' },
+  { roomNumber: '5동 205호', leader1: '김철수', leader2: '김철수' },
+  { roomNumber: '3동 303호', leader1: '이영희', leader2: '이영희' },
+  { roomNumber: '3동 305호', leader1: '이영희', leader2: '이영희' },
+];
+
 // 동 번호 → 동 이름 매핑
 const BUILDING_NAMES: Record<string, string> = {
   '1': '태조관',
@@ -71,8 +85,10 @@ export const TRANSLATIONS = {
     checkingBtn: '확인 중...',
     successMessage: (name: string) => `${name}님의 숙소가 배정되었습니다.`,
     errorMessage: '일치하는 정보가 없습니다. 이름과 전화번호를 다시 확인해주세요.',
-    day1Room: '6.25 (목)',
+        day1Room: '6.25 (목)',
     day2Room: '6.26 (금)',
+    roomLeader: '방장',
+    noPhoneLabel: '전화번호 없음',
     swipeHint: '옆으로 스와이프 하세요 ↔',
     workshopTitle: '미션워크샵',
     workshopBtn: '신청하기',
@@ -106,6 +122,8 @@ export const TRANSLATIONS = {
     errorMessage: 'No matching records found. Please check your name and phone number again.',
     day1Room: 'Day 1 (Thu 6/25)',
     day2Room: 'Day 2 (Fri 6/26)',
+    roomLeader: 'Room Host',
+    noPhoneLabel: 'No phone number',
     swipeHint: 'Swipe sideways ↔',
     workshopTitle: 'Mission Workshop',
     workshopBtn: 'Apply',
@@ -155,6 +173,8 @@ function App() {
   }>({ status: 'idle' });
   const [isLoading, setIsLoading] = useState(false);
   const [roomData, setRoomData] = useState<RoomData[]>([]);
+  const [roomingListData, setRoomingListData] = useState<RoomingListData[]>([]);
+  const [noPhoneChecked, setNoPhoneChecked] = useState(false);
 
   // Lightbox State
   const [lightboxImages, setLightboxImages] = useState<string[]>([]);
@@ -170,6 +190,7 @@ function App() {
   // const GOOGLE_SHEET_CSV_URL = `${BASE_SHEET_URL}?output=csv&gid=${BANG_BAEJUNG_GID}`;
 
   const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSobizaNozUAdQ0FThwosoBm8897pf96D-wN0VLsH2QR_RQk96d_EA-yKpdB6yqqkAT2KUok5h--0Ms/pub?output=csv';
+  const ROOMING_LIST_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSobizaNozUAdQ0FThwosoBm8897pf96D-wN0VLsH2QR_RQk96d_EA-yKpdB6yqqkAT2KUok5h--0Ms/pub?output=csv&gid=245582727';
 
   useEffect(() => {
     // Attempt to load Google Sheets data
@@ -211,8 +232,55 @@ function App() {
       }
     };
 
+    const fetchRoomingListData = async () => {
+      if (!ROOMING_LIST_CSV_URL) {
+        setRoomingListData(MOCK_ROOMING_LIST);
+        return;
+      }
+
+      try {
+        Papa.parse(ROOMING_LIST_CSV_URL, {
+          download: true,
+          header: true,
+          complete: (results) => {
+            console.log('루밍리스트 CSV 헤더:', results.meta.fields);
+            const parsedData: RoomingListData[] = (results.data as any[])
+              .map((row: any) => {
+                const roomKey = Object.keys(row).find(k => k.trim() === '배정객실');
+                const leader1Key = Object.keys(row).find(k => k.trim() === '방장1');
+                const leader2Key = Object.keys(row).find(k => k.trim() === '방장2');
+                return {
+                  roomNumber: roomKey ? (row[roomKey] || '').trim() : '',
+                  leader1: leader1Key ? (row[leader1Key] || '').trim() : '',
+                  leader2: leader2Key ? (row[leader2Key] || '').trim() : '',
+                };
+              })
+              .filter(item => item.roomNumber);
+            console.log(`총 ${parsedData.length}개의 루밍리스트 행 로드됨`);
+            setRoomingListData(parsedData);
+          },
+          error: (error) => {
+            console.error("Error parsing Rooming List CSV:", error);
+            setRoomingListData(MOCK_ROOMING_LIST);
+          }
+        });
+      } catch (e) {
+        console.error("Failed to fetch Rooming List data:", e);
+        setRoomingListData(MOCK_ROOMING_LIST);
+      }
+    };
+
     fetchSheetData();
+    fetchRoomingListData();
   }, []);
+
+  const getRoomLeader = (roomStr: string, day: 1 | 2) => {
+    if (!roomStr) return '';
+    const cleanedRoom = roomStr.trim();
+    const match = roomingListData.find(item => item.roomNumber.trim() === cleanedRoom);
+    if (!match) return '';
+    return day === 1 ? match.leader1 : match.leader2;
+  };
 
   const handleScroll = () => {
     const sections = ['schedule', 'guide', 'workshop', 'structure', 'room', 'location'];
@@ -260,7 +328,7 @@ function App() {
 
   const handleSearchRoom = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!nameInput.trim() || !phoneInput.trim()) return;
+    if (!nameInput.trim() || (!noPhoneChecked && !phoneInput.trim())) return;
 
     setIsLoading(true);
     setSearchResult({ status: 'idle' });
@@ -270,8 +338,12 @@ function App() {
       const normalizedInputName = nameInput.trim();
 
       const found = roomData.find(item => {
-        const itemContact = item.contact.replace(/-/g, '').trim();
-        return item.name === normalizedInputName && itemContact === normalizedInputContact;
+        if (noPhoneChecked) {
+          return item.name === normalizedInputName;
+        } else {
+          const itemContact = item.contact.replace(/-/g, '').trim();
+          return item.name === normalizedInputName && itemContact === normalizedInputContact;
+        }
       });
 
       if (found && (found.roomDay1 || found.roomDay2)) {
@@ -500,9 +572,25 @@ function App() {
             </div>
 
             <div className="input-group">
-              <label htmlFor="phone" className="input-label">
-                {TRANSLATIONS[language].phoneLabel}
-              </label>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <label htmlFor="phone" className="input-label" style={{ margin: 0 }}>
+                  {TRANSLATIONS[language].phoneLabel}
+                </label>
+                <label style={{ display: 'inline-flex', alignItems: 'center', fontSize: '0.8rem', color: 'var(--text-secondary)', cursor: 'pointer', gap: '4px' }}>
+                  <input
+                    type="checkbox"
+                    checked={noPhoneChecked}
+                    onChange={(e) => {
+                      setNoPhoneChecked(e.target.checked);
+                      if (e.target.checked) {
+                        setPhoneInput('');
+                      }
+                    }}
+                    style={{ accentColor: 'var(--primary-color)', cursor: 'pointer' }}
+                  />
+                  {TRANSLATIONS[language].noPhoneLabel}
+                </label>
+              </div>
               <input
                 type="tel"
                 id="phone"
@@ -511,14 +599,16 @@ function App() {
                 value={phoneInput}
                 onChange={handlePhoneChange}
                 maxLength={13}
-                required
+                disabled={noPhoneChecked}
+                required={!noPhoneChecked}
+                style={noPhoneChecked ? { opacity: 0.6, cursor: 'not-allowed', backgroundColor: '#f1f5f9' } : {}}
               />
             </div>
 
             <button
               type="submit"
               className="submit-btn"
-              disabled={isLoading || !nameInput || !phoneInput}
+              disabled={isLoading || !nameInput || (!noPhoneChecked && !phoneInput)}
             >
               {isLoading ? TRANSLATIONS[language].checkingBtn : TRANSLATIONS[language].submitBtn}{' '}
               <Search size={18} style={{ display: 'inline', verticalAlign: 'text-bottom', marginLeft: '4px' }} />
@@ -545,6 +635,11 @@ function App() {
                         {getBuildingName(searchResult.roomDay1)}
                       </div>
                     )}
+                    {searchResult.roomDay1 && getRoomLeader(searchResult.roomDay1, 1) && (
+                      <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.3rem' }}>
+                        {TRANSLATIONS[language].roomLeader}: <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{getRoomLeader(searchResult.roomDay1, 1)}</span>
+                      </div>
+                    )}
                   </div>
                   <div style={{ flex: 1, padding: '1rem', background: 'white', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
                     <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
@@ -554,6 +649,11 @@ function App() {
                     {searchResult.roomDay2 && getBuildingName(searchResult.roomDay2) && (
                       <div style={{ fontSize: '0.85rem', color: 'var(--primary-color)', fontWeight: 600, marginTop: '0.3rem' }}>
                         {getBuildingName(searchResult.roomDay2)}
+                      </div>
+                    )}
+                    {searchResult.roomDay2 && getRoomLeader(searchResult.roomDay2, 2) && (
+                      <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.3rem' }}>
+                        {TRANSLATIONS[language].roomLeader}: <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{getRoomLeader(searchResult.roomDay2, 2)}</span>
                       </div>
                     )}
                   </div>
